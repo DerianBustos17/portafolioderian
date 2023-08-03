@@ -1,8 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
+
 import Navbar from './Components/Nabvar';
 import Home from './Components/Home';
 import AboutMe from './Components/AboutMe';
+
+import Portafolio from './Components/Portafolio';
 
 
 function App() {
@@ -11,6 +13,8 @@ function App() {
       <Navbar></Navbar>
       <Home></Home>
       <AboutMe></AboutMe>
+    <Portafolio></Portafolio>
+
     </div>
   );
 }
