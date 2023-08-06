@@ -4,6 +4,6 @@ module.exports = {
   theme: {
     extend: {},
   },
+  darkMode: 'class', // Habilitar Dark Mode con enfoque basado en clases
   plugins: [],
 }
-

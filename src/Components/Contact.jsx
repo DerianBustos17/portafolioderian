@@ -3,7 +3,7 @@ import React from 'react'
 const Contact= () => { 
         const email = 'derianbustos2002@gmail.com';
         const subject = 'Asunto del correo';
-        const body = 'Cuerpo del correo';
+        const body = 'Hola Derian, estoy interesado en trabajar contigo.';
         const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     return (
         <div >

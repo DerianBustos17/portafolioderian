@@ -9,17 +9,14 @@ function App() {
   const [currentPage, setCurrentPage] = useState('Home');
   const aboutMeRef = useRef(null);
   const portafolioRef = useRef(null);
-
+  const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       const windowHeight = window.innerHeight;
-
-      // Check if the refs are assigned and exist in the DOM before accessing their properties
       if (aboutMeRef.current && portafolioRef.current) {
         const aboutMeOffset = aboutMeRef.current.offsetTop;
         const portafolioOffset = portafolioRef.current.offsetTop;
-
         if (scrollPosition >= portafolioOffset - windowHeight / 2) {
           setCurrentPage('portafolio');
         } else if (scrollPosition >= aboutMeOffset - windowHeight / 2) {
@@ -29,17 +26,17 @@ function App() {
         }
       }
     };
-
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
   return (
-    <div className="App">
-      <Navbar currentPage={currentPage} />
+    <div className={`App ${darkMode ? 'dark' : ''}`}>
+    <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div id="home">
           <Home />
         </div>
