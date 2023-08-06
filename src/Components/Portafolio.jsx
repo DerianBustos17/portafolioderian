@@ -1,6 +1,6 @@
 import React, {useEffect } from 'react';
 import Contact from './Contact';
-
+import { Fade } from 'react-awesome-reveal';
 
 const Portafolio = () => {
 
@@ -20,8 +20,13 @@ const Portafolio = () => {
       }, []);
     return (
         <div id='portafolio' className="flex flex-col justify-around  h-screen items-center bg-gray-800">
+            <Fade>
             <h1 className="text-2xl font-bold text-gray-200 py-8 border-b-4 border-indigo-400 ">Portafolio</h1>
+            </Fade>
+            <Fade>
                 <p className="text-xl text-amber-400">Here, you can see the projects I have worked on.</p>
+                </Fade>
+                <Fade>
                     <div className="card hover:translate-y-[-4px] hover:shadow-lg ">
                         <div className="card-img" style={{backgroundImage:'url(/imagen_portafolio.jpg)',}}>
                             <div className="overlay opacity-0 bg-black/60 transition-opacity duration-200">
@@ -37,8 +42,13 @@ const Portafolio = () => {
                             </a>
                         </div>
                     </div>
+                    </Fade>
+                    <Fade>
                     <h2 className='text-2xl text-orange-500 font-bold '>Contact me</h2>
-                        <Contact></Contact>           
+                    </Fade>
+                    <Fade>
+                        <Contact></Contact>
+                        </Fade>           
         </div> 
     );
 }
