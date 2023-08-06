@@ -41,7 +41,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
     };
     return (
       <header className='flex justify-center items-center h-16 max-w-[100%] z-50 mx-auto px-4 text-white color-font absolute right-0 left-0 top-0  max-md:justify-end'>
-        <ul className='hidden md:flex md:justify-center md:fixed md:'>
+        <ul className='hidden md:flex md:justify-center md:fixed '>
           {menuOpciones.map((MenuWeb) => (
             <ListaMenuWeb
               opcion={MenuWeb}
@@ -69,5 +69,6 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       </header>
     );
   };
+
   export default Navbar;
   

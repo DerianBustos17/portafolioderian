@@ -22,7 +22,7 @@ const Portafolio = () => {
             <h1 className="text-2xl font-bold text-black dark:text-gray-200 py-8 border-b-4 border-indigo-400 ">Portafolio</h1>
             </Fade>
             <Fade>
-                <p className="text-xl text-black dark:text-amber-400">Here, you can see the projects I have worked on.</p>
+                <p className="text-xl text-black dark:text-amber-400 text-justify mx-2">Here, you can see the projects I have worked on.</p>
                 </Fade>
                 <Fade>
                     <div className="card hover:translate-y-[-4px] hover:shadow-lg ">
