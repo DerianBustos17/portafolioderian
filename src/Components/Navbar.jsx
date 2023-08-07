@@ -56,7 +56,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
         <div onClick={handleNav}  className='md:hidden flex justify-center backdrop-blur-lg fixed text-gray-400 dark:text-white'>
                     {nav ? <AiOutlineClose size={30}/> :  <AiOutlineMenu size= {30}/>}               
                 </div>
-                    <div className={nav ? 'fixed left-0 top-0 w-[50%]  items-center h-full backdrop-blur-3xl  ' : 'fixed left-[-100%]' }>               
+                    <div className={nav ? 'fixed left-0 top-0 w-[50%]  items-center h-full z-50 backdrop-blur-3xl  ' : 'fixed left-[-100%]' }>               
                         <ul className='uppercase p-4 ' >   
                             {menuOpciones.map((menu) => ( <ListaMenuMobile  opcion={menu}
                             currentPage={currentPage}
