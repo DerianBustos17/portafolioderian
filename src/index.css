@@ -149,6 +149,7 @@ body {
   background: #fff;
   position: relative;
   overflow: hidden;
+  z-index: 10;
 }
 
 .card:hover, .card.hover {
