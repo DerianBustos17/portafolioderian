@@ -12,7 +12,7 @@ const Skills = () => {
            <img className='w-full' src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/2367px-Vue.js_Logo_2.svg.png" alt="img Vue.js"></img>
         </div>
         <div className="carta">
-            <img className='w-full ' src="https://w7.pngwing.com/pngs/79/518/png-transparent-js-react-js-logo-react-react-native-logos-icon-thumbnail.png" alt="img React" />
+            <img className='w-full ' src="https://miro.medium.com/v2/resize:fit:522/0*Hdm7hBTZ-hKlbtlV.png" alt="img React" />
         </div>
         <div className="carta">
             <img className='w-full' src="https://1000marcas.net/wp-content/uploads/2020/11/Java-logo.png" alt="img Java" />

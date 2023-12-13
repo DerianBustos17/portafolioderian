@@ -19,7 +19,7 @@ const Portfolio = () => {
     return (
         <div id='portafolio' className="flex flex-col justify-around  h-screen items-center bg-white dark:bg-gray-800">
             <Fade>
-            <h1 className="text-2xl font-bold text-black dark:text-gray-200 py-8 border-b-4 border-indigo-400 ">Portafolio</h1>
+            <h1 className="text-2xl font-bold text-black dark:text-gray-200 py-8 border-b-4 border-indigo-400 ">Portfolio</h1>
             </Fade>
             <Fade>
                 <p className="text-xl text-black dark:text-amber-400 text-justify mx-2">Here, you can see the projects I have worked on.</p>
