@@ -1,10 +1,9 @@
 import React, {useState , useEffect} from 'react';
-import {AiOutlineClose,AiOutlineMenu} from 'react-icons/ai'
-import ListaMenuMobile from './ListaMenuMobile';
-import ListaMenuWeb from './ListaMenuWeb';
+import {AiOutlineClose,AiOutlineMenu} from 'react-icons/ai';
 import ButtomScreenModeMobile from './ButtomScreenModeMobile';
 import ButtomScreenModeWeb from './ButtomScreenModeWeb';
-
+import ListMenuWeb from './ListMenuWeb';
+import ListMenuMobile from './ListMenuMobile';
 
 const Navbar = ({ darkMode, toggleDarkMode }) => {
     const menuOpciones = ['Home', 'About Me', 'Portfolio'];
@@ -43,8 +42,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       <header className='flex justify-center items-center h-16 max-w-[100%] z-50 mx-auto px-4 text-white color-font absolute right-0 left-0 top-0  max-md:justify-end'>
         <ul className='hidden md:flex md:justify-center md:fixed '>
           {menuOpciones.map((MenuWeb) => (
-            <ListaMenuWeb
-              opcion={MenuWeb}
+            <ListMenuWeb
+              option={MenuWeb}
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
               key={MenuWeb}
@@ -58,13 +57,13 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                 </div>
                     <div className={nav ? 'fixed left-0 top-0 w-[50%]  items-center h-full z-50 backdrop-blur-3xl  ' : 'fixed left-[-100%]' }>               
                         <ul className='uppercase p-4 ' >   
-                            {menuOpciones.map((menu) => ( <ListaMenuMobile  opcion={menu}
+                            {menuOpciones.map((menu) => ( <ListMenuMobile  opcion={menu}
                             currentPage={currentPage}
                             setCurrentPage={setCurrentPage}
                             key={menu}
                             onMenuLinkClick={handleMenuLinkClick}  />))}
                         </ul>
-                       <ButtomScreenModeMobile darkMode={darkMode} toggleDarkMode={toggleDarkMode}></ButtomScreenModeMobile>
+                       <ButtomScreenModeMobile darkMode={darkMode} toggleDarkMode={toggleDarkMode}/>
                     </div>
       </header>
     );

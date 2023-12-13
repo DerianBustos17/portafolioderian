@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Navbar from './Components/Navbar';
 import Home from './Components/Home';
 import AboutMe from './Components/AboutMe';
-import Portafolio from './Components/Portafolio';
+import Portfolio from './Components/Portfolio';
 import Copyright from './Components/Copyright';
+import Navbar from './Components/Navbar';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('Home');
@@ -44,9 +44,9 @@ function App() {
           <AboutMe />
         </div>
         <div ref={portafolioRef} id='portfolio'>
-          <Portafolio  />
+          <Portfolio  />
         </div>
-          <Copyright></Copyright>
+          <Copyright/>
     </div>
   );
 }

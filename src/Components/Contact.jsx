@@ -1,5 +1,4 @@
-import React from 'react'
-
+import React from 'react';
 const Contact= () => { 
         const email = 'derianbustos2002@gmail.com';
         const subject = 'Asunto del correo';

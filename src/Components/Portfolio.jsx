@@ -2,7 +2,7 @@ import React, {useEffect } from 'react';
 import Contact from './Contact';
 import { Fade } from 'react-awesome-reveal';
 
-const Portafolio = () => {
+const Portfolio = () => {
     useEffect(() => {
         const removeHoverClass = () => {
           document.querySelectorAll('.card').forEach((card) => {
@@ -45,9 +45,9 @@ const Portafolio = () => {
                     <h2 className='text-2xl text-orange-500 font-bold '>Contact me</h2>
                     </Fade>
                     <Fade>
-                    <Contact></Contact>
+                    <Contact/>
                     </Fade>           
         </div> 
     );
 }
-export default  Portafolio ;
+export default  Portfolio ;
