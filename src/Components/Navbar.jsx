@@ -39,8 +39,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       setCurrentPage(option);
     };
     return (
-      <header className='flex justify-center items-center h-16 max-w-[100%] z-50 mx-auto px-4 text-white color-font absolute right-0 left-0 top-0  max-md:justify-end'>
-        <ul className='hidden md:flex md:justify-center md:fixed '>
+      <header className='flex justify-end items-center h-14 max-w-[100%] z-50 mx-auto px-4 text-white color-font absolute right-0 left-0 top-4  max-md:justify-end '>
+        <ul className='hidden md:flex md:justify-start md:fixed md:rounded-2xl md:bg-black md:bg-opacity-50'>
           {menuOpciones.map((MenuWeb) => (
             <ListMenuWeb
               option={MenuWeb}
