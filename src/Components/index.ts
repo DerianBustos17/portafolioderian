@@ -10,3 +10,5 @@ export * from "./Portfolio";
 export * from "./ListMenuWeb";
 export * from "./ListMenuMobile";
 export * from "./Copyright";
+export * from "./Carousel";
+export * from "./CardCarouselContent";
