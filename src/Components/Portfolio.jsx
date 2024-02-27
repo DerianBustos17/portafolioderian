@@ -17,11 +17,6 @@ const Portfolio = () => {
     const timer = setTimeout(removeHoverClass, delay);
     return () => clearTimeout(timer);
   }, []);
-  const images = [
-    "https://via.placeholder.com/600x400",
-    "https://via.placeholder.com/600x400",
-    "https://via.placeholder.com/600x400",
-  ];
 
   return (
     <div
@@ -38,42 +33,11 @@ const Portfolio = () => {
           Here, you can see the projects I have worked on.
         </p>
       </Fade>
-      {/*
-      <Fade>
-        <div className="card hover:translate-y-[-4px] hover:shadow-lg ">
-          <div
-            className="card-img"
-            style={{ backgroundImage: "url(/imagen_portafolio.jpg)" }}
-          >
-            <div className="overlay opacity-0 bg-black/60 transition-opacity duration-200">
-              <div className="overlay-content">
-                <a
-                  href="https://github.com/DerianBustos17/portafolioderian.git"
-                  className="hover:bg-amber-400 hover:border-amber-400 hover:text-black py-2 px-4 rounded-full"
-                >
-                  View Project
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="card-content">
-            <a>
-              <h2 className="text-lg font-semibold text-center">Portfolio </h2>
-              <p className="text-sm text-gray-700">
-                Hi, here see my code the project in Github.
-              </p>
-            </a>
-          </div>
-        </div>
-      </Fade>
-
-      <Fade>
-        <h2 className="text-2xl text-orange-500 font-bold ">Contact me</h2>
-  </Fade> */}
       <div className="md:w-2/4">
         <Carousel />
       </div>
       <Fade>
+        <h2 className="text-2xl text-orange-500 font-bold ">Contact me</h2>
         <Contact />
       </Fade>
     </div>
