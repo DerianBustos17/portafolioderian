@@ -11,5 +11,5 @@ module.exports = {
     extend: {},
   },
   darkMode: "class", // Habilitar Dark Mode con enfoque basado en clases
-  plugins: [],
+  plugins: [require("tw-elements-react/dist/plugin.cjs")],
 };
