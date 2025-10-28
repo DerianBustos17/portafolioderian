@@ -28,7 +28,7 @@ export const skills = [
     alt: "Javascript",
   },
   {
-    url: "https://static-00.iconduck.com/assets.00/c-sharp-c-icon-1822x2048-wuf3ijab.png",
+    url: "https://www.muylinux.com/wp-content/uploads/2020/11/dotNET.png",
     alt: ".NET",
   },
   {

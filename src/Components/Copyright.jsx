@@ -1,12 +1,11 @@
-import React from 'react';
-const Copyright = () => { 
-    return (
-      <div>
-            <div className='flex flex-col h-auto items-center justify-center dark:bg-gray-800'>
-                <span className=' dark:text-white'>Copyright@2023, Derian Bustos</span>
-                <span className='dark:text-white'> All Rights Reserved</span>
-            </div>
+const Copyright = () => {
+  return (
+    <div>
+      <div className="flex flex-col h-auto items-center justify-center bg-gray-900">
+        <span className=" text-gray-200">Copyright@2025, Derian Bustos</span>
+        <span className="text-gray-200"> All Rights Reserved</span>
       </div>
-    );
-}
-export default  Copyright ;
+    </div>
+  );
+};
+export default Copyright;

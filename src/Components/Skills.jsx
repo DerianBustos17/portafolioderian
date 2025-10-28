@@ -1,4 +1,3 @@
-import React from "react";
 import CardSkills from "./CardSkills";
 import { skills } from "../helpers/imagesSkillHelper";
 const Skills = () => {

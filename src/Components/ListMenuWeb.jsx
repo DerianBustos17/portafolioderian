@@ -1,4 +1,3 @@
-import React from "react";
 const ListMenuWeb = (props) => {
   const { option, currentPage } = props;
   const handleClick = () => {

@@ -35,7 +35,7 @@ function App() {
     setDarkMode(!darkMode);
   };
   return (
-    <div className={`App ${darkMode ? "dark" : ""}`}>
+    <div aria-label="Global" className={`App ${darkMode ? "dark" : ""} `}>
       <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <div id="home">
         <Home />

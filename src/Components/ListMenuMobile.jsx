@@ -1,4 +1,3 @@
-import React from "react";
 const ListMenuMobile = (props) => {
   const { opcion, currentPage } = props;
   const handleClick = () => {

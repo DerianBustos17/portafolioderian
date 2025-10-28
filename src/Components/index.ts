@@ -12,3 +12,4 @@ export * from "./ListMenuMobile";
 export * from "./Copyright";
 export * from "./Carousel";
 export * from "./CardCarouselContent";
+export * from "./WorkExperience";
