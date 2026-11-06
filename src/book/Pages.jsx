@@ -4,6 +4,7 @@ import { profile } from "../data/profile";
 import { education } from "../data/experiences";
 import { skillGroups } from "../data/skills";
 import { CHAPTERS, firstSpreadOf } from "./spreads";
+import F from "./FireText";
 
 // Tamaño de una página en píxeles CSS. Mantiene la proporción de las páginas
 // del modelo 3D (1.38 x 2.0 unidades).
@@ -27,9 +28,11 @@ function ChapterHeading({ chapterId }) {
   return (
     <header className="chapter-heading">
       <p className="chapter-kicker">
-        {t("chapter")} {ch.numeral}
+        <F text={`${t("chapter")} ${ch.numeral}`} />
       </p>
-      <h2>{t(chapterId)}</h2>
+      <h2>
+        <F text={t(chapterId)} />
+      </h2>
       <Flourish />
     </header>
   );
@@ -39,7 +42,9 @@ function Tags({ items }) {
   return (
     <ul className="tags">
       {items.map((it) => (
-        <li key={it}>{it}</li>
+        <li key={it}>
+          <F text={it} />
+        </li>
       ))}
     </ul>
   );
@@ -49,12 +54,20 @@ function TitlePage() {
   const { t, tr } = useLang();
   return (
     <div className="page-center">
-      <p className="kicker">{t("exLibris")}</p>
+      <p className="kicker">
+        <F text={t("exLibris")} />
+      </p>
       <img className="portrait" src={profile.photo} alt={profile.name} />
-      <h1 className="title">{profile.name}</h1>
+      <h1 className="title">
+        <F text={profile.name} />
+      </h1>
       <Flourish />
-      <p className="subtitle">{tr(profile.role)}</p>
-      <p className="muted italic">{t("bookSubtitle")}</p>
+      <p className="subtitle">
+        <F text={tr(profile.role)} />
+      </p>
+      <p className="muted italic">
+        <F text={t("bookSubtitle")} />
+      </p>
     </div>
   );
 }
@@ -63,19 +76,29 @@ function TocPage({ onJump }) {
   const { t } = useLang();
   return (
     <div>
-      <h2 className="toc-title">{t("contents")}</h2>
+      <h2 className="toc-title">
+        <F text={t("contents")} />
+      </h2>
       <Flourish />
-      <p className="italic muted">{t("tocIntro")}</p>
+      <p className="italic muted">
+        <F text={t("tocIntro")} />
+      </p>
       <ol className="toc">
         {CHAPTERS.map((c) => {
           const spread = firstSpreadOf(c.id);
           return (
             <li key={c.id}>
               <button type="button" onClick={() => onJump(spread)}>
-                <span className="toc-num">{c.numeral}</span>
-                <span className="toc-name">{t(c.id)}</span>
+                <span className="toc-num">
+                  <F text={c.numeral} />
+                </span>
+                <span className="toc-name">
+                  <F text={t(c.id)} />
+                </span>
                 <span className="toc-dots" aria-hidden="true" />
-                <span className="toc-page">{spread * 2 + 1}</span>
+                <span className="toc-page">
+                  <F text={spread * 2 + 1} />
+                </span>
               </button>
             </li>
           );
@@ -91,8 +114,8 @@ function AboutPage() {
     <div>
       <ChapterHeading chapterId="about" />
       {tr(profile.about).map((p, i) => (
-        <p key={i} className={i === 0 ? "dropcap" : undefined}>
-          {p}
+        <p key={i}>
+          <F text={p} dropcap={i === 0} />
         </p>
       ))}
     </div>
@@ -103,23 +126,39 @@ function AboutCardPage() {
   const { t, tr, lang } = useLang();
   return (
     <div>
-      <h3 className="section-title">{t("education")}</h3>
+      <h3 className="section-title">
+        <F text={t("education")} />
+      </h3>
       {education.map((ed) => (
         <div key={ed.id} className="entry">
-          <p className="entry-title">{tr(ed.title)}</p>
-          <p>{ed.institution}</p>
-          <p className="muted small">{formatPeriod(ed.start, ed.end, lang)}</p>
+          <p className="entry-title">
+            <F text={tr(ed.title)} />
+          </p>
+          <p>
+            <F text={ed.institution} />
+          </p>
+          <p className="muted small">
+            <F text={formatPeriod(ed.start, ed.end, lang)} />
+          </p>
         </div>
       ))}
       <dl className="facts">
-        <dt>{t("location")}</dt>
-        <dd>{profile.location}</dd>
-        <dt>{t("languages")}</dt>
-        <dd>{tr(profile.languages)}</dd>
+        <dt>
+          <F text={t("location")} />
+        </dt>
+        <dd>
+          <F text={profile.location} />
+        </dd>
+        <dt>
+          <F text={t("languages")} />
+        </dt>
+        <dd>
+          <F text={tr(profile.languages)} />
+        </dd>
       </dl>
       <div className="page-center">
         <a className="seal-button" href={profile.cv} target="_blank" rel="noopener noreferrer">
-          {t("downloadCv")}
+          <F text={t("downloadCv")} />
         </a>
       </div>
     </div>
@@ -131,12 +170,22 @@ function ExperienceMain({ data, first }) {
   return (
     <div>
       {first && <ChapterHeading chapterId="experience" />}
-      <p className="muted small caps">{formatPeriod(data.start, data.end, lang)}</p>
-      <h3 className="entry-heading">{tr(data.role)}</h3>
-      <p className="company">{data.company}</p>
-      <p className="muted small">{data.location}</p>
+      <p className="muted small caps">
+        <F text={formatPeriod(data.start, data.end, lang)} />
+      </p>
+      <h3 className="entry-heading">
+        <F text={tr(data.role)} />
+      </h3>
+      <p className="company">
+        <F text={data.company} />
+      </p>
+      <p className="muted small">
+        <F text={data.location} />
+      </p>
       {!first && <Flourish />}
-      <p className="dropcap">{tr(data.summary)}</p>
+      <p>
+        <F text={tr(data.summary)} dropcap />
+      </p>
     </div>
   );
 }
@@ -145,13 +194,19 @@ function ExperienceDetail({ data }) {
   const { t, tr } = useLang();
   return (
     <div>
-      <h3 className="section-title">{t("highlights")}</h3>
+      <h3 className="section-title">
+        <F text={t("highlights")} />
+      </h3>
       <ul className="quill-list">
         {tr(data.highlights).map((h, i) => (
-          <li key={i}>{h}</li>
+          <li key={i}>
+            <F text={h} />
+          </li>
         ))}
       </ul>
-      <h3 className="section-title">{t("tools")}</h3>
+      <h3 className="section-title">
+        <F text={t("tools")} />
+      </h3>
       <Tags items={data.tech} />
     </div>
   );
@@ -166,9 +221,13 @@ function ProjectImage({ data, first }) {
         {data.image ? (
           <img src={data.image} alt={tr(data.title)} />
         ) : (
-          <div className="plate-empty">{t("comingSoon")}</div>
+          <div className="plate-empty">
+            <F text={t("comingSoon")} />
+          </div>
         )}
-        <figcaption>{tr(data.title)}</figcaption>
+        <figcaption>
+          <F text={tr(data.title)} />
+        </figcaption>
       </figure>
     </div>
   );
@@ -178,16 +237,22 @@ function ProjectInfo({ data }) {
   const { t, tr } = useLang();
   return (
     <div>
-      <h3 className="entry-heading">{tr(data.title)}</h3>
+      <h3 className="entry-heading">
+        <F text={tr(data.title)} />
+      </h3>
       <Flourish />
-      <p className="dropcap">{tr(data.description)}</p>
-      <h3 className="section-title">{t("tools")}</h3>
+      <p>
+        <F text={tr(data.description)} dropcap />
+      </p>
+      <h3 className="section-title">
+        <F text={t("tools")} />
+      </h3>
       <Tags items={data.tech} />
       {data.links.length > 0 && (
         <p className="links">
           {data.links.map((l) => (
             <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer">
-              {l.label} ↗
+              <F text={`${l.label} ↗`} />
             </a>
           ))}
         </p>
@@ -203,8 +268,12 @@ function SkillsPage() {
       <ChapterHeading chapterId="skills" />
       {skillGroups.map((g) => (
         <div key={g.id} className="skill-group">
-          <p className="skill-title">{tr(g.title)}</p>
-          <p className="skill-items">{g.items.join(" · ")}</p>
+          <p className="skill-title">
+            <F text={tr(g.title)} />
+          </p>
+          <p className="skill-items">
+            <F text={g.items.join(" · ")} />
+          </p>
         </div>
       ))}
     </div>
@@ -215,22 +284,32 @@ function ContactPage() {
   const { t } = useLang();
   return (
     <div>
-      <h3 className="section-title">{t("contact")}</h3>
-      <p className="italic">{t("contactIntro")}</p>
+      <h3 className="section-title">
+        <F text={t("contact")} />
+      </h3>
+      <p className="italic">
+        <F text={t("contactIntro")} />
+      </p>
       <ul className="contacts">
         {profile.contacts.map((c) => (
           <li key={c.id}>
-            <span className="contact-label">{c.label}</span>
+            <span className="contact-label">
+              <F text={c.label} />
+            </span>
             <a href={c.href} target="_blank" rel="noopener noreferrer">
-              {c.text}
+              <F text={c.text} />
             </a>
           </li>
         ))}
       </ul>
       <div className="page-center farewell">
         <Flourish />
-        <p className="italic muted">{t("farewell")}</p>
-        <p className="monogram">{profile.initials}</p>
+        <p className="italic muted">
+          <F text={t("farewell")} />
+        </p>
+        <p className="monogram">
+          <F text={profile.initials} />
+        </p>
       </div>
     </div>
   );
@@ -255,11 +334,17 @@ export function Page({ page, chapter, number, side, onJump }) {
   const Content = KINDS[page.kind];
   return (
     <article className={`book-page book-page--${side}`} style={{ width: PAGE_W, height: PAGE_H }}>
-      {chapter !== "contents" && <p className="running-head">{t(chapter)}</p>}
+      {chapter !== "contents" && (
+        <p className="running-head">
+          <F text={t(chapter)} />
+        </p>
+      )}
       <div className="page-body">
         <Content data={page.data} first={page.first} onJump={onJump} />
       </div>
-      <p className="folio">{number}</p>
+      <p className="folio">
+        <F text={number} />
+      </p>
     </article>
   );
 }

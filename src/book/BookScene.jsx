@@ -167,39 +167,118 @@ function PageOverlay({ side, spreadIndex, visible, narrow, onJump }) {
   );
 }
 
+// Escala mínima del texto (1 = tamaño de diseño). Por debajo, la cámara se
+// acerca para leer y la página se recorre en vertical (rueda o flechas ↑ ↓).
+const MIN_TEXT_SCALE = 0.85;
+const UI_TOP_PX = 64; // barra superior
+const UI_BOTTOM_PX = () => (window.innerHeight < 720 ? 112 : 150); // placa de navegación
+
 // Encuadra la cámara según el estado: libro cerrado, abierto entero o, en
 // pantallas estrechas, una sola página.
-function CameraRig({ open, narrow, side }) {
+function CameraRig({ open, narrow, side, spreadIndex, scrollRef }) {
   const { camera, size } = useThree();
   const look = useRef(new THREE.Vector3(0, READ_Y, 0));
+  const pan = useRef(-Infinity); // desplazamiento vertical en modo lectura (se recorta a su rango)
+  const view = useRef({ excess: 0, ppu: 1 });
+
+  // Cada página nueva empieza arriba.
+  useEffect(() => {
+    pan.current = -Infinity;
+  }, [spreadIndex, side, open]);
+
+  // Rueda del ratón y flechas ↑ ↓ desplazan la página cuando no cabe entera.
+  useEffect(() => {
+    const scroll = (deltaPx) => {
+      const { excess, ppu } = view.current;
+      if (excess <= 0) return false;
+      const base = Number.isFinite(pan.current) ? pan.current : -excess / 2;
+      pan.current = THREE.MathUtils.clamp(base + deltaPx / ppu, -excess / 2, excess / 2);
+      return true;
+    };
+    const onWheel = (e) => scroll(e.deltaY);
+    const onKey = (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (scroll((e.key === "ArrowDown" ? 1 : -1) * 120)) e.preventDefault();
+      }
+    };
+    let touchY = null;
+    const onTouchStart = (e) => (touchY = e.touches[0].clientY);
+    const onTouchMove = (e) => {
+      if (touchY === null) return;
+      const y = e.touches[0].clientY;
+      scroll(touchY - y);
+      touchY = y;
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, []);
 
   useFrame((_, dt) => {
-    const aspect = size.width / size.height;
     const vfov = THREE.MathUtils.degToRad(camera.fov);
-    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
+    const tanV = Math.tan(vfov / 2);
+    const H = size.height;
+    const W = size.width;
 
-    let target, w, h, dir;
+    let target, dist, dir;
+    let excess = 0;
+    let ppu = 1;
     if (!open) {
+      const aspect = W / H;
+      const hfov = 2 * Math.atan(tanV * aspect);
       target = new THREE.Vector3(0, 0.1, 0.1);
       // En vertical el libro inclinado ocupa más ancho del que parece: se deja más margen.
-      w = narrow ? 2.6 : 1.9;
-      h = 2.5;
+      const w = narrow ? 2.6 : 1.9;
+      const h = 2.5;
       dir = new THREE.Vector3(0.35, 1, 1.05);
-    } else if (narrow) {
-      target = new THREE.Vector3(side === "left" ? -PAGE_CX : PAGE_CX, READ_Y, 0);
-      w = PAGE_W + 0.08;
-      h = PAGE_D + 0.1;
-      dir = new THREE.Vector3(0, 1, 0.12);
+      dist = Math.max(w / 2 / Math.tan(hfov / 2), h / 2 / tanV) * 1.06;
     } else {
-      target = new THREE.Vector3(0, READ_Y, 0.04);
-      w = COVER_W * 2 + 0.15;
-      h = PAGE_D + 0.25;
-      dir = new THREE.Vector3(0, 1, 0.2);
-    }
-    const dist = Math.max(w / 2 / Math.tan(hfov / 2), h / 2 / Math.tan(vfov / 2)) * 1.06;
-    const desired = target.clone().add(dir.normalize().multiplyScalar(dist));
+      const w = narrow ? PAGE_W + 0.08 : COVER_W * 2 + 0.15;
+      const h = PAGE_D + 0.12;
+      const cx = narrow ? (side === "left" ? -PAGE_CX : PAGE_CX) : 0;
+      dir = new THREE.Vector3(0, 1, narrow ? 0.12 : 0.2);
 
-    const k = prefersReducedMotion ? 1 : 1 - Math.exp(-3 * Math.min(dt, 0.1));
+      // Distancia para que quepa a lo ancho y en el hueco libre entre la barra y la placa.
+      const availH = Math.max(H - UI_TOP_PX - UI_BOTTOM_PX(), 160);
+      const dW = (H * w) / (2 * tanV * W);
+      const dH = (H * h) / (2 * tanV * availH);
+      dist = Math.max(dW, dH);
+      ppu = H / (2 * dist * tanV); // píxeles de pantalla por unidad 3D
+
+      // Si así el texto queda pequeño, se acerca (sin pasarse del ancho) y se habilita el desplazamiento.
+      const minPpu = 400 * MIN_TEXT_SCALE;
+      if (ppu < minPpu) {
+        dist = Math.max(dW, H / (2 * tanV * minPpu));
+        ppu = H / (2 * dist * tanV);
+      }
+      excess = Math.max(0, h - availH / ppu);
+      if (excess > 0 && !Number.isFinite(pan.current)) pan.current = -excess / 2;
+      const p = excess > 0 ? THREE.MathUtils.clamp(pan.current, -excess / 2, excess / 2) : 0;
+
+      // Centra la página en el hueco libre (la placa de abajo es más alta que la barra de arriba).
+      const shift = (UI_BOTTOM_PX() - UI_TOP_PX) / 2 / ppu;
+      target = new THREE.Vector3(cx, READ_Y, shift + p);
+
+      // Indicador de desplazamiento (DOM), sin re-renderizar React.
+      const bar = scrollRef && scrollRef.current;
+      if (bar) {
+        bar.style.opacity = excess > 0 ? "1" : "0";
+        const visible = (h - excess) / h;
+        bar.style.setProperty("--thumb-size", `${visible * 100}%`);
+        bar.style.setProperty("--thumb-pos", `${excess > 0 ? ((p + excess / 2) / excess) * (1 - visible) * 100 : 0}%`);
+      }
+    }
+    view.current = { excess, ppu };
+
+    const desired = target.clone().add(dir.normalize().multiplyScalar(dist));
+    const k = prefersReducedMotion ? 1 : 1 - Math.exp(-4 * Math.min(dt, 0.1));
     camera.position.lerp(desired, k);
     look.current.lerp(target, k);
     camera.lookAt(look.current);
@@ -216,7 +295,7 @@ function Candlelight() {
   return <pointLight ref={light} position={[-2.4, 1.6, -1.4]} color="#ffb060" distance={9} decay={1.6} />;
 }
 
-export default function BookScene({ open, spreadIndex, flip, contentVisible, narrow, side, onToggle, onSettled, onFlipDone, onJump }) {
+export default function BookScene({ open, spreadIndex, flip, contentVisible, narrow, side, scrollRef, onToggle, onSettled, onFlipDone, onJump }) {
   return (
     <Canvas
       className="book-canvas"
@@ -257,7 +336,7 @@ export default function BookScene({ open, spreadIndex, flip, contentVisible, nar
         <ContactShadows position={[0, -0.002, 0]} scale={7} blur={2.4} opacity={0.65} far={1.2} color="#120804" />
         <Sparkles count={70} scale={[6, 2.5, 4]} position={[0, 1.2, 0]} size={2.2} speed={0.25} color="#f6c96b" opacity={0.7} />
       </Suspense>
-      <CameraRig open={open} narrow={narrow} side={side} />
+      <CameraRig open={open} narrow={narrow} side={side} spreadIndex={spreadIndex} scrollRef={scrollRef} />
     </Canvas>
   );
 }

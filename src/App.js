@@ -2,6 +2,8 @@ import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 
 import { LanguageProvider, useLang } from "./i18n/LanguageContext";
 import { SPREADS, firstSpreadOf } from "./book/spreads";
 import { Page } from "./book/Pages";
+import FireText from "./book/FireText";
+import Pager from "./book/Pager";
 import { profile } from "./data/profile";
 import "./book/book.css";
 
@@ -125,6 +127,9 @@ function Portfolio() {
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev, open, busy]);
 
+  // Indicador de desplazamiento vertical (lo mueve la cámara en modo lectura).
+  const scrollRef = useRef(null);
+
   // Deslizar en pantallas táctiles
   const touch = useRef(null);
   const onTouchStart = (e) => (touch.current = e.touches[0].clientX);
@@ -164,6 +169,7 @@ function Portfolio() {
             contentVisible={open && settled && !busy}
             narrow={narrow}
             side={side}
+            scrollRef={scrollRef}
             onToggle={() => setOpen(true)}
             onSettled={setSettled}
             onFlipDone={onFlipDone}
@@ -179,28 +185,34 @@ function Portfolio() {
         )
       )}
 
+      {webgl && open && (
+        <div className="read-scroll" ref={scrollRef} aria-hidden="true">
+          <div className="read-scroll-thumb" />
+        </div>
+      )}
+
       {!open ? (
         <div className="cover-cta">
-          <h1>{profile.name}</h1>
+          <h1>
+            <FireText text={profile.name} />
+          </h1>
           <p>{tr(profile.role)}</p>
           <button type="button" className="seal-button" onClick={() => setOpen(true)}>
             {t("openBook")}
           </button>
         </div>
       ) : (
-        <nav className="pager" aria-label={t("contents")}>
-          <button type="button" onClick={prev} disabled={busy} aria-label={spread === 0 && side === "left" ? t("closeBook") : t("prev")}>
-            ‹
-          </button>
-          <span className="pager-label">
-            {current.chapter === "contents" ? t("contents") : t(current.chapter)} · {t("page")} {pageNumber}
-          </span>
-          <button type="button" onClick={next} disabled={busy || atEnd} aria-label={t("next")}>
-            ›
-          </button>
-        </nav>
+        <Pager
+          spread={spread}
+          pageNumber={pageNumber}
+          busy={busy}
+          atStart={spread === 0 && side === "left"}
+          atEnd={atEnd}
+          onPrev={prev}
+          onNext={next}
+          onJump={jump}
+        />
       )}
-      {open && <p className="hint">{t("hint")}</p>}
     </div>
   );
 }
