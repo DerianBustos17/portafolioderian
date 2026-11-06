@@ -156,7 +156,7 @@ body {
   letter-spacing: 0.12em;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 220, 150, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   text-decoration: none;
 }
 
@@ -237,7 +237,7 @@ body {
     inset 0 0 0 4px rgba(240, 207, 122, 0.35),
     0 2px 8px rgba(0, 0, 0, 0.5);
   color: var(--gold-bright);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
@@ -267,7 +267,7 @@ body {
 
 .pager-btn:disabled {
   filter: grayscale(0.8) brightness(0.6);
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 .pager-center {
@@ -325,7 +325,7 @@ body {
   border: 1px solid rgba(201, 162, 74, 0.7);
   background: #23100a;
   transform: translate(-50%, -50%) rotate(45deg);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
   transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 
@@ -599,7 +599,7 @@ body {
   text-align: left;
   background: none;
   border-radius: 4px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .toc button:hover,
@@ -893,7 +893,6 @@ body {
 .fire-letter {
   display: inline-block;
   position: relative;
-  cursor: default;
 }
 
 .fire-letter.is-burning {
@@ -1102,5 +1101,55 @@ body {
   .topbar {
     padding-top: 10px;
     padding-bottom: 10px;
+  }
+}
+
+/* ---------- Cursor de pluma y chispas ---------- */
+
+html,
+body,
+.app {
+  cursor: var(--cursor-default, auto);
+}
+
+a,
+button,
+[role="button"],
+summary,
+label[for] {
+  cursor: var(--cursor-pointer, pointer);
+}
+
+button:disabled {
+  cursor: var(--cursor-default, default);
+}
+
+.spark-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.spark {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6c8 0%, #ffc23a 45%, rgba(255, 110, 20, 0) 75%);
+  box-shadow: 0 0 6px 1px rgba(255, 160, 50, 0.7);
+  animation: spark-fly 0.75s ease-out forwards;
+}
+
+@keyframes spark-fly {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.2);
   }
 }

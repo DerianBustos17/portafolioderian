@@ -72,7 +72,7 @@ function Book({ open, onToggle, onSettled }) {
           }
         }}
         onPointerOver={() => {
-          if (!open) document.body.style.cursor = "pointer";
+          if (!open) document.body.style.cursor = "var(--cursor-pointer)";
         }}
         onPointerOut={() => {
           document.body.style.cursor = "";

@@ -4,6 +4,7 @@ import { SPREADS, firstSpreadOf } from "./book/spreads";
 import { Page } from "./book/Pages";
 import FireText from "./book/FireText";
 import Pager from "./book/Pager";
+import MagicCursor from "./book/MagicCursor";
 import { profile } from "./data/profile";
 import "./book/book.css";
 
@@ -220,6 +221,7 @@ function Portfolio() {
 export default function App() {
   return (
     <LanguageProvider>
+      <MagicCursor />
       <Portfolio />
     </LanguageProvider>
   );
