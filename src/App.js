@@ -1,54 +1,214 @@
-import React, { useEffect, useState, useRef } from "react";
-import Home from "./Components/Home";
-import AboutMe from "./Components/AboutMe";
-import Portfolio from "./Components/Portfolio";
-import Copyright from "./Components/Copyright";
-import Navbar from "./Components/Navbar";
+import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { LanguageProvider, useLang } from "./i18n/LanguageContext";
+import { SPREADS, firstSpreadOf } from "./book/spreads";
+import { Page } from "./book/Pages";
+import { profile } from "./data/profile";
+import "./book/book.css";
 
-function App() {
-  const [currentPage, setCurrentPage] = useState("Home");
-  const aboutMeRef = useRef(null);
-  const portafolioRef = useRef(null);
-  const [darkMode, setDarkMode] = useState(false);
+const BookScene = lazy(() => import("./book/BookScene"));
+
+
+function hasWebGL() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch (e) {
+    return false;
+  }
+}
+
+function useNarrow() {
+  const query = "(max-width: 820px), (max-aspect-ratio: 1/1)";
+  const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      if (aboutMeRef.current && portafolioRef.current) {
-        const aboutMeOffset = aboutMeRef.current.offsetTop;
-        const portafolioOffset = portafolioRef.current.offsetTop;
-        if (scrollPosition >= portafolioOffset - windowHeight / 2) {
-          setCurrentPage("portafolio");
-        } else if (scrollPosition >= aboutMeOffset - windowHeight / 2) {
-          setCurrentPage("aboutme");
-        } else {
-          setCurrentPage("home");
-        }
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    const mq = window.matchMedia(query);
+    const onChange = () => setNarrow(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  return narrow;
+}
+
+function LanguageToggle() {
+  const { lang, setLang, t } = useLang();
   return (
-    <div aria-label="Global" className={`App ${darkMode ? "dark" : ""} `}>
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <div id="home">
-        <Home />
-      </div>
-      <div ref={aboutMeRef} id="about-me">
-        <AboutMe />
-      </div>
-      <div ref={portafolioRef} id="portfolio">
-        <Portfolio />
-      </div>
-      <Copyright />
+    <div className="lang-toggle" role="group" aria-label={t("language")}>
+      {["es", "en"].map((l) => (
+        <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)}>
+          {l.toUpperCase()}
+        </button>
+      ))}
     </div>
   );
 }
 
-export default App;
+function Portfolio() {
+  const { t, tr } = useLang();
+  const narrow = useNarrow();
+  const [webgl] = useState(hasWebGL);
+
+  // Un enlace como /#experience abre el libro directamente en ese capítulo.
+  const [initialSpread] = useState(() => {
+    const id = window.location.hash.slice(1);
+    return id ? firstSpreadOf(id) : -1;
+  });
+  const [open, setOpen] = useState(initialSpread >= 0);
+  const [spread, setSpread] = useState(Math.max(initialSpread, 0));
+  const [side, setSide] = useState("left"); // página visible en pantallas estrechas
+  const [flip, setFlip] = useState(null); // { dir, to }
+  const [settled, setSettled] = useState(!webgl); // la portada ya terminó de abrirse (lo avisa el libro 3D)
+
+  const last = SPREADS.length - 1;
+  const busy = flip !== null;
+
+  const flipTo = useCallback(
+    (to) => {
+      if (busy || to === spread || to < 0 || to > last) return;
+      if (!webgl) {
+        // Sin 3D no hay animación: se cambia de página directamente.
+        setSpread(to);
+        setSide(to > spread ? "left" : "right");
+        return;
+      }
+      setFlip({ dir: to > spread ? 1 : -1, to });
+    },
+    [busy, spread, last, webgl]
+  );
+
+  const onFlipDone = useCallback(() => {
+    if (!flip) return;
+    setSpread(flip.to);
+    setSide(flip.dir === 1 ? "left" : "right");
+    setFlip(null);
+  }, [flip]);
+
+  const next = useCallback(() => {
+    if (busy) return;
+    if (!open) return setOpen(true);
+    if (narrow && side === "left") return setSide("right");
+    flipTo(spread + 1);
+  }, [busy, open, narrow, side, spread, flipTo]);
+
+  const prev = useCallback(() => {
+    if (busy || !open) return;
+    if (narrow && side === "right") return setSide("left");
+    if (spread === 0) return setOpen(false);
+    flipTo(spread - 1);
+  }, [busy, open, narrow, side, spread, flipTo]);
+
+  const jump = useCallback((to) => flipTo(to), [flipTo]);
+
+  // Enlaces a un capítulo (#experience...) mientras la página ya está abierta.
+  useEffect(() => {
+    const onHash = () => {
+      const to = firstSpreadOf(window.location.hash.slice(1));
+      if (to < 0) return;
+      if (open) flipTo(to);
+      else {
+        setSpread(to);
+        setSide("left");
+        setOpen(true);
+      }
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [open, flipTo]);
+
+  // Teclado
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+      else if (e.key === "Escape" && open && !busy) setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [next, prev, open, busy]);
+
+  // Deslizar en pantallas táctiles
+  const touch = useRef(null);
+  const onTouchStart = (e) => (touch.current = e.touches[0].clientX);
+  const onTouchEnd = (e) => {
+    if (touch.current === null) return;
+    const dx = e.changedTouches[0].clientX - touch.current;
+    touch.current = null;
+    if (Math.abs(dx) < 50) return;
+    dx < 0 ? next() : prev();
+  };
+
+  // Mantiene el capítulo actual en la URL para poder compartirlo.
+  useEffect(() => {
+    const hash = open ? `#${SPREADS[spread].chapter}` : " ";
+    window.history.replaceState(null, "", hash === " " ? window.location.pathname : hash);
+  }, [open, spread]);
+
+  const current = SPREADS[spread];
+  const pageNumber = spread * 2 + (narrow && side === "right" ? 2 : 1);
+  const atEnd = spread === last && (!narrow || side === "right");
+
+  return (
+    <div className="app" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <header className="topbar">
+        <p className="brand">
+          {profile.shortName} <span>· {tr(profile.role)}</span>
+        </p>
+        <LanguageToggle />
+      </header>
+
+      {webgl ? (
+        <Suspense fallback={<p className="loading">{t("loading")}</p>}>
+          <BookScene
+            open={open}
+            spreadIndex={spread}
+            flip={flip}
+            contentVisible={open && settled && !busy}
+            narrow={narrow}
+            side={side}
+            onToggle={() => setOpen(true)}
+            onSettled={setSettled}
+            onFlipDone={onFlipDone}
+            onJump={jump}
+          />
+        </Suspense>
+      ) : (
+        open && (
+          <main className="flat-book" style={{ "--parchment": "url(/textures/parchment.jpg)" }}>
+            {(!narrow || side === "left") && <Page page={current.left} chapter={current.chapter} number={spread * 2 + 1} side="left" onJump={jump} />}
+            {(!narrow || side === "right") && <Page page={current.right} chapter={current.chapter} number={spread * 2 + 2} side="right" onJump={jump} />}
+          </main>
+        )
+      )}
+
+      {!open ? (
+        <div className="cover-cta">
+          <h1>{profile.name}</h1>
+          <p>{tr(profile.role)}</p>
+          <button type="button" className="seal-button" onClick={() => setOpen(true)}>
+            {t("openBook")}
+          </button>
+        </div>
+      ) : (
+        <nav className="pager" aria-label={t("contents")}>
+          <button type="button" onClick={prev} disabled={busy} aria-label={spread === 0 && side === "left" ? t("closeBook") : t("prev")}>
+            ‹
+          </button>
+          <span className="pager-label">
+            {current.chapter === "contents" ? t("contents") : t(current.chapter)} · {t("page")} {pageNumber}
+          </span>
+          <button type="button" onClick={next} disabled={busy || atEnd} aria-label={t("next")}>
+            ›
+          </button>
+        </nav>
+      )}
+      {open && <p className="hint">{t("hint")}</p>}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <Portfolio />
+    </LanguageProvider>
+  );
+}
