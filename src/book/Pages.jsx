@@ -3,7 +3,7 @@ import { useLang, formatPeriod } from "../i18n/LanguageContext";
 import { profile } from "../data/profile";
 import { education } from "../data/experiences";
 import { skillGroups } from "../data/skills";
-import { CHAPTERS, firstSpreadOf } from "./spreads";
+import { CHAPTERS, SPREADS, firstSpreadOf } from "./spreads";
 import F from "./FireText";
 
 // Tamaño de una página en píxeles CSS. Mantiene la proporción de las páginas
@@ -329,9 +329,11 @@ const KINDS = {
 };
 
 // Una página completa: contenido + cabecera de capítulo + número de página.
-export function Page({ page, chapter, number, side, onJump }) {
+// onGrab: si se pasa, el borde exterior se puede agarrar y arrastrar para pasar la hoja.
+export function Page({ page, chapter, number, side, onJump, onGrab }) {
   const { t } = useLang();
   const Content = KINDS[page.kind];
+  const hasMore = side === "left" ? number > 1 : number < SPREADS.length * 2;
   return (
     <article className={`book-page book-page--${side}`} style={{ width: PAGE_W, height: PAGE_H }}>
       {chapter !== "contents" && (
@@ -345,6 +347,14 @@ export function Page({ page, chapter, number, side, onJump }) {
       <p className="folio">
         <F text={number} />
       </p>
+      {onGrab && hasMore && (
+        <div
+          className={`page-grab page-grab--${side}`}
+          onPointerDown={(e) => onGrab(side, e)}
+          title={side === "left" ? t("prev") : t("next")}
+          aria-hidden="true"
+        />
+      )}
     </article>
   );
 }

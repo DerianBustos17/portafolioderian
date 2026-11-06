@@ -1153,3 +1153,79 @@ button:disabled {
     transform: translate(var(--dx), var(--dy)) scale(0.2);
   }
 }
+
+/* ---------- Agarrar el borde de la página para pasarla ---------- */
+
+.page-grab {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  z-index: 2;
+  cursor: var(--cursor-pointer, grab);
+  touch-action: none;
+}
+
+.page-grab--right {
+  right: 0;
+}
+
+.page-grab--left {
+  left: 0;
+}
+
+/* Sombra suave a lo largo del borde, como si la hoja se levantara un poco */
+.page-grab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.page-grab--right::before {
+  background: linear-gradient(270deg, rgba(70, 35, 10, 0.18), rgba(70, 35, 10, 0) 70%);
+}
+
+.page-grab--left::before {
+  background: linear-gradient(90deg, rgba(70, 35, 10, 0.18), rgba(70, 35, 10, 0) 70%);
+}
+
+/* Esquina inferior doblada: el reverso del pergamino asoma al pasar el ratón */
+.page-grab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  transition: width 0.25s ease, height 0.25s ease;
+  box-shadow: 0 0 10px rgba(40, 20, 5, 0.35);
+}
+
+.page-grab--right::after {
+  right: 0;
+  background: linear-gradient(315deg, var(--night) 0 50%, #d9c08c 50%, #b89a62 100%);
+  border-top-left-radius: 6px;
+}
+
+.page-grab--left::after {
+  left: 0;
+  background: linear-gradient(45deg, var(--night) 0 50%, #d9c08c 50%, #b89a62 100%);
+  border-top-right-radius: 6px;
+}
+
+.page-grab:hover::before {
+  opacity: 1;
+}
+
+.page-grab:hover::after {
+  width: 54px;
+  height: 54px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-grab::before,
+  .page-grab::after {
+    transition: none;
+  }
+}

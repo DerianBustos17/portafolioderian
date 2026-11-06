@@ -58,7 +58,7 @@ function Portfolio() {
   const [open, setOpen] = useState(initialSpread >= 0);
   const [spread, setSpread] = useState(Math.max(initialSpread, 0));
   const [side, setSide] = useState("left"); // página visible en pantallas estrechas
-  const [flip, setFlip] = useState(null); // { dir, to }
+  const [flip, setFlip] = useState(null); // { dir, to, manual }
   const [settled, setSettled] = useState(!webgl); // la portada ya terminó de abrirse (lo avisa el libro 3D)
 
   const last = SPREADS.length - 1;
@@ -76,6 +76,54 @@ function Portfolio() {
       setFlip({ dir: to > spread ? 1 : -1, to });
     },
     [busy, spread, last, webgl]
+  );
+
+  // Arrastre de la esquina de una página (como un libro de verdad).
+  // drag.current.p (0..1) lo lee la hoja 3D en cada fotograma.
+  const drag = useRef({ p: 0, active: false, release: null, moved: false });
+
+  const onFlipCancel = useCallback(() => setFlip(null), []);
+
+  const startGrab = useCallback(
+    (pageSide, e) => {
+      if (busy || !open || e.button > 0) return;
+      const dir = pageSide === "right" ? 1 : -1;
+      const to = spread + dir;
+      if (to < 0 || to > last) return;
+      e.preventDefault(); // evita seleccionar texto mientras se arrastra
+
+      const pageEl = e.currentTarget.closest(".book-page");
+      const width = (pageEl && pageEl.getBoundingClientRect().width) || 400;
+      const startX = e.clientX;
+      drag.current = { p: 0, active: true, release: null, moved: false };
+      if (webgl) setFlip({ dir, to, manual: true });
+
+      const onMove = (ev) => {
+        // Página derecha: se arrastra hacia la izquierda; izquierda: hacia la derecha.
+        const dx = (startX - ev.clientX) * dir;
+        if (Math.abs(dx) > 4) drag.current.moved = true;
+        // Hace falta recorrer algo más de un ancho de página para el giro completo.
+        drag.current.p = Math.min(Math.max(dx / (width * 1.4), 0), 1);
+      };
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
+        const d = drag.current;
+        // Un clic sin arrastrar también pasa la página.
+        const complete = !d.moved || d.p > 0.3;
+        d.active = false;
+        d.release = complete ? "complete" : "cancel";
+        if (!webgl && complete) {
+          setSpread(to);
+          setSide(dir === 1 ? "left" : "right");
+        }
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    },
+    [busy, open, spread, last, webgl]
   );
 
   const onFlipDone = useCallback(() => {
@@ -167,6 +215,7 @@ function Portfolio() {
             open={open}
             spreadIndex={spread}
             flip={flip}
+            drag={drag}
             contentVisible={open && settled && !busy}
             narrow={narrow}
             side={side}
@@ -174,14 +223,16 @@ function Portfolio() {
             onToggle={() => setOpen(true)}
             onSettled={setSettled}
             onFlipDone={onFlipDone}
+            onFlipCancel={onFlipCancel}
             onJump={jump}
+            onGrab={startGrab}
           />
         </Suspense>
       ) : (
         open && (
           <main className="flat-book" style={{ "--parchment": "url(/textures/parchment.jpg)" }}>
-            {(!narrow || side === "left") && <Page page={current.left} chapter={current.chapter} number={spread * 2 + 1} side="left" onJump={jump} />}
-            {(!narrow || side === "right") && <Page page={current.right} chapter={current.chapter} number={spread * 2 + 2} side="right" onJump={jump} />}
+            {(!narrow || side === "left") && <Page page={current.left} chapter={current.chapter} number={spread * 2 + 1} side="left" onJump={jump} onGrab={narrow ? null : startGrab} />}
+            {(!narrow || side === "right") && <Page page={current.right} chapter={current.chapter} number={spread * 2 + 2} side="right" onJump={jump} onGrab={narrow ? null : startGrab} />}
           </main>
         )
       )}

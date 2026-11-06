@@ -84,16 +84,18 @@ function Book({ open, onToggle, onSettled }) {
 
 // Hoja que se dibuja solo mientras se pasa página. Se curva: el borde exterior
 // se retrasa respecto al lomo, como una hoja de papel real.
-function FlippingSheet({ flip, onDone }) {
+// - Con botones o teclado (flip.manual = false) gira sola en FLIP_SECONDS.
+// - Al arrastrarla (flip.manual = true) sigue al ratón (drag.current.p, 0..1) y,
+//   al soltar, termina de pasar (onDone) o vuelve a su sitio (onCancel).
+function FlippingSheet({ flip, drag, onDone, onCancel }) {
   const tex = useTexture("/textures/parchment.jpg");
   const mesh = useRef();
   const start = useRef(null);
+  const progress = useRef(0); // avance del giro en su dirección, 0..1
+  const finished = useRef(false);
   const COLS = 32;
 
-  const geometry = useMemo(() => {
-    const g = new THREE.PlaneGeometry(1, 1, COLS, 1);
-    return g;
-  }, []);
+  const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1, COLS, 1), []);
 
   useEffect(() => {
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -101,16 +103,40 @@ function FlippingSheet({ flip, onDone }) {
 
   useEffect(() => {
     start.current = null;
+    progress.current = 0;
+    finished.current = false;
   }, [flip]);
 
-  useFrame((state) => {
-    if (!flip || !mesh.current) return;
-    if (start.current === null) start.current = state.clock.elapsedTime;
-    const duration = prefersReducedMotion ? 0.01 : FLIP_SECONDS;
-    let t = Math.min((state.clock.elapsedTime - start.current) / duration, 1);
-    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  useFrame((state, dt) => {
+    if (!flip || !mesh.current || finished.current) return;
+    let cur;
+    let end = null; // "done" | "cancel"
+
+    if (flip.manual) {
+      const d = drag.current;
+      const step = Math.min(dt, 0.1);
+      if (d.active) {
+        cur = THREE.MathUtils.damp(progress.current, d.p, 14, step);
+      } else {
+        const target = d.release === "complete" ? 1 : 0;
+        cur = prefersReducedMotion ? target : THREE.MathUtils.damp(progress.current, target, 7, step);
+        if (Math.abs(cur - target) < 0.004) {
+          cur = target;
+          end = target === 1 ? "done" : "cancel";
+        }
+      }
+    } else {
+      if (start.current === null) start.current = state.clock.elapsedTime;
+      const duration = prefersReducedMotion ? 0.01 : FLIP_SECONDS;
+      const t = Math.min((state.clock.elapsedTime - start.current) / duration, 1);
+      cur = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      if (t >= 1) end = "done";
+    }
+    progress.current = cur;
+
+    // p: 0 = hoja apoyada a la derecha, 1 = apoyada a la izquierda.
     // dir 1: de derecha a izquierda (siguiente); dir -1: al revés (anterior)
-    const p = flip.dir === 1 ? eased : 1 - eased;
+    const p = flip.dir === 1 ? cur : 1 - cur;
     const lag = 0.55 * Math.sin(Math.PI * p) * flip.dir;
 
     const pos = geometry.attributes.position;
@@ -128,9 +154,9 @@ function FlippingSheet({ flip, onDone }) {
     pos.needsUpdate = true;
     geometry.computeVertexNormals();
 
-    if (t >= 1) {
-      start.current = null;
-      onDone();
+    if (end) {
+      finished.current = true;
+      end === "done" ? onDone() : onCancel();
     }
   });
 
@@ -143,7 +169,7 @@ function FlippingSheet({ flip, onDone }) {
 }
 
 // Contenido HTML colocado sobre la superficie de cada página.
-function PageOverlay({ side, spreadIndex, visible, narrow, onJump }) {
+function PageOverlay({ side, spreadIndex, visible, narrow, onJump, onGrab }) {
   const spread = SPREADS[spreadIndex];
   const page = side === "left" ? spread.left : spread.right;
   const number = spreadIndex * 2 + (side === "left" ? 1 : 2);
@@ -160,7 +186,7 @@ function PageOverlay({ side, spreadIndex, visible, narrow, onJump }) {
     >
       <LanguageContext.Provider value={lang}>
         <div aria-hidden={!visible}>
-          <Page page={page} chapter={spread.chapter} number={number} side={side} onJump={onJump} />
+          <Page page={page} chapter={spread.chapter} number={number} side={side} onJump={onJump} onGrab={narrow ? null : onGrab} />
         </div>
       </LanguageContext.Provider>
     </Html>
@@ -295,7 +321,7 @@ function Candlelight() {
   return <pointLight ref={light} position={[-2.4, 1.6, -1.4]} color="#ffb060" distance={9} decay={1.6} />;
 }
 
-export default function BookScene({ open, spreadIndex, flip, contentVisible, narrow, side, scrollRef, onToggle, onSettled, onFlipDone, onJump }) {
+export default function BookScene({ open, spreadIndex, flip, drag, contentVisible, narrow, side, scrollRef, onToggle, onSettled, onFlipDone, onFlipCancel, onJump, onGrab }) {
   return (
     <Canvas
       className="book-canvas"
@@ -326,11 +352,11 @@ export default function BookScene({ open, spreadIndex, flip, contentVisible, nar
           <Lightformer form="rect" intensity={0.6} color="#8a6cff" position={[3, 1, -3]} scale={[4, 2, 1]} />
         </Environment>
         <Book open={open} onToggle={onToggle} onSettled={onSettled} />
-        <FlippingSheet flip={flip} onDone={onFlipDone} />
+        <FlippingSheet flip={flip} drag={drag} onDone={onFlipDone} onCancel={onFlipCancel} />
         {open && (
           <>
-            <PageOverlay side="left" spreadIndex={spreadIndex} visible={contentVisible} narrow={narrow} onJump={onJump} />
-            <PageOverlay side="right" spreadIndex={spreadIndex} visible={contentVisible} narrow={narrow} onJump={onJump} />
+            <PageOverlay side="left" spreadIndex={spreadIndex} visible={contentVisible} narrow={narrow} onJump={onJump} onGrab={onGrab} />
+            <PageOverlay side="right" spreadIndex={spreadIndex} visible={contentVisible} narrow={narrow} onJump={onJump} onGrab={onGrab} />
           </>
         )}
         <ContactShadows position={[0, -0.002, 0]} scale={7} blur={2.4} opacity={0.65} far={1.2} color="#120804" />
