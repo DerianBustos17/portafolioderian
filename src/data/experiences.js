@@ -10,7 +10,7 @@ export const experiences = [
   {
     id: "trifecta",
     company: "TRIFECTA SOFTWARE",
-    role: { es: "Desarrollador Full Stack", en: "Full Stack Developer" },
+    role: { es: "Ingeniero de Software IA", en: "AI Software Enginer Developer" },
     location: "San José, Costa Rica",
     start: "2024-06",
     end: "2025-08",
